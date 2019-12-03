@@ -16,7 +16,8 @@
     "typescript": "^3.7.2"
   },
   "devDependencies": {
-    "ava": "^2.4.0"
+    "ava": "^2.4.0",
+    "tslint": "^5.20.1"
   },
   "ava": {
     "compileEnhancements": false,

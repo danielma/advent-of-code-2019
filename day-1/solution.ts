@@ -17,119 +17,17 @@ What is the sum of the fuel requirements for all of the modules on your spacecra
 */
 
 import R from "ramda";
+const DEBUG_MODE = true;
 
 export function getFuel(mass: number): number {
-  return Math.floor(mass / 3) - 2;
+  const result = Math.floor(mass / 3) - 2;
+
+  if (result < 0) {
+    return 0;
+  } else {
+    return result;
+  }
 }
-
-const inputs = `
-122281
-124795
-58593
-133744
-67625
-109032
-50156
-80746
-130872
-79490
-126283
-146564
-73075
-130170
-139853
-92599
-96965
-58149
-94254
-89074
-52977
-148092
-92073
-136765
-144755
-142487
-54827
-135588
-91411
-51597
-70040
-68880
-117120
-137115
-72829
-100048
-65187
-131464
-95813
-146891
-128799
-94568
-67178
-94903
-67193
-127613
-115782
-85360
-129820
-50989
-63471
-106724
-145768
-55169
-77555
-82978
-87728
-69141
-95518
-82985
-83387
-83089
-64372
-127931
-99277
-58930
-99098
-95621
-147797
-64102
-118857
-71014
-84881
-147294
-72166
-71348
-149240
-117963
-89181
-144770
-102444
-99103
-72341
-56076
-128515
-51319
-147595
-98431
-141102
-148617
-84685
-111427
-82351
-57021
-63834
-113059
-119970
-87078
-120631
-124942
-`
-  .trim()
-  .split("\n");
-
-// const total = R.sum(inputs.map(i => getFuel(parseInt(i, 10))));
-
-// console.log(total);
 
 /*
 --- Part Two ---
@@ -144,3 +42,15 @@ At first, a module of mass 1969 requires 654 fuel. Then, this fuel requires 216 
 The fuel required by a module of mass 100756 and its fuel is: 33583 + 11192 + 3728 + 1240 + 411 + 135 + 43 + 12 + 2 = 50346.
 What is the sum of the fuel requirements for all of the modules on your spacecraft when also taking into account the mass of the added fuel? (Calculate the fuel requirements for each module separately, then add them all up at the end.)
 */
+
+export function fancyGetFuel(mass: number): number {
+  let result = getFuel(mass);
+  let neededFuel = result;
+
+  while (neededFuel > 0) {
+    neededFuel = getFuel(neededFuel);
+    result += neededFuel;
+  }
+
+  return result;
+}
