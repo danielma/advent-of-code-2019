@@ -1,5 +1,7 @@
 import test from "ava";
 import { intCode } from "./solution";
+import { readFileSync } from "fs";
+import { parseIntBaseTen } from "../utils";
 
 test("1", t => {
   t.deepEqual(intCode([1, 0, 0, 0, 99]), [2, 0, 0, 0, 99]);
@@ -42,4 +44,24 @@ test("basic test", t => {
     40,
     50,
   ]);
+});
+
+test("real input", t => {
+  /*
+  Once you have a working computer, the first step is to restore the gravity assist program (your puzzle input) to the "1202 program alarm" state it had just before the last computer caught fire. To do this, before running the program, replace position 1 with the value 12 and replace position 2 with the value 2. What value is left at position 0 after the program halts?
+  */
+
+  const input = readFileSync(`${__dirname}/input`)
+    .toString()
+    .split(",")
+    .map(parseIntBaseTen);
+
+  input[1] = 12;
+  input[2] = 2;
+
+  const result = intCode(input);
+
+  t.log(result[0]);
+
+  t.is(1, 1);
 });
