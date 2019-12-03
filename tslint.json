@@ -2,6 +2,9 @@
   "defaultSeverity": "error",
   "extends": ["tslint:recommended"],
   "jsRules": {},
-  "rules": {},
+  "rules": {
+    "max-line-length": false,
+    "arrow-parens": [true, "ban-single-arg-parens"]
+  },
   "rulesDirectory": []
 }
