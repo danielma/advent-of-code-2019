@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 /*
 At the first Go / No Go poll, every Elf is Go until the Fuel Counter-Upper. They haven't determined the amount of fuel required yet.
 
@@ -43,14 +41,12 @@ The fuel required by a module of mass 100756 and its fuel is: 33583 + 11192 + 37
 What is the sum of the fuel requirements for all of the modules on your spacecraft when also taking into account the mass of the added fuel? (Calculate the fuel requirements for each module separately, then add them all up at the end.)
 */
 
-export function fancyGetFuel(mass: number): number {
-  let result = getFuel(mass);
-  let neededFuel = result;
+export function fancyGetFuel(mass: number, left: number = 0): number {
+  const fuel = getFuel(mass);
 
-  while (neededFuel > 0) {
-    neededFuel = getFuel(neededFuel);
-    result += neededFuel;
+  if (fuel > 0) {
+    return fancyGetFuel(fuel, left + fuel);
+  } else {
+    return left;
   }
-
-  return result;
 }

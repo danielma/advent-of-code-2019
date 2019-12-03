@@ -42,4 +42,6 @@ test("output", t => {
         .map(i => fancyGetFuel(i))
     )
   );
+
+  t.is(1, 1);
 });
