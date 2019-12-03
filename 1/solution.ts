@@ -16,4 +16,28 @@ The Fuel Counter-Upper needs to know the total fuel requirement. To find it, ind
 What is the sum of the fuel requirements for all of the modules on your spacecraft?
 */
 
-console.log("I RAN!");
+class AssertionError extends Error {}
+
+function print(string: string): void {
+  process.stdout.write(string);
+}
+
+function assertEqual(actual: any, expected: any): void {
+  if (actual === expected) {
+    print(".");
+  } else {
+    throw new AssertionError(`Expected ${actual} to equal ${expected}`);
+  }
+}
+
+function getFuel(mass: number): number {
+  return Math.floor(mass / 3) - 2;
+}
+
+assertEqual(getFuel(12), 2);
+assertEqual(getFuel(14), 2);
+assertEqual(getFuel(1969), 654);
+assertEqual(getFuel(100756), 33583);
+
+console.log("");
+console.log("all good!");
