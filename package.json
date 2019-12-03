@@ -1,0 +1,16 @@
+{
+  "name": "advent-of-code-2019",
+  "version": "1.0.0",
+  "description": "Advent of code 2019",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "ts-node 1/solution.ts"
+  },
+  "author": "Daniel Ma",
+  "license": "ISC",
+  "dependencies": {
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.2"
+  }
+}
