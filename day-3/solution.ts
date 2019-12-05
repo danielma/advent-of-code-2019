@@ -38,6 +38,7 @@ What is the Manhattan distance from the central port to the closest intersection
 
 import R from "ramda";
 import { parseIntBaseTen } from "../utils";
+import { readFileSync } from "fs";
 
 enum Direction {
   U = "U",
@@ -48,6 +49,7 @@ enum Direction {
 type Movement = { direction: Direction; distance: number };
 type WirePath = Movement[];
 type Coordinate = { x: number; y: number };
+type ReversedCoordinateMap = { [key: string]: true };
 
 const entryCoordinate: Coordinate = { x: 0, y: 0 };
 
@@ -95,6 +97,112 @@ export function manhattanDistance(coordinates: Coordinate): number {
   return Math.abs(coordinates.x) + Math.abs(coordinates.y);
 }
 
+function walkInACircle(
+  distance: number,
+  cb: (coordinate: Coordinate) => boolean
+): boolean {
+  if (distance === 0) {
+    cb(entryCoordinate);
+  } else {
+    const position = { x: 0, y: distance };
+
+    for (let i = 1; i <= distance; i++) {
+      if (cb(position)) {
+        return true;
+      }
+
+      position.x++;
+      position.y--;
+    }
+
+    for (let i = 1; i <= distance; i++) {
+      if (cb(position)) {
+        return true;
+      }
+
+      position.x--;
+      position.y--;
+    }
+
+    for (let i = 1; i <= distance; i++) {
+      if (cb(position)) {
+        return true;
+      }
+
+      position.x--;
+      position.y++;
+    }
+
+    for (let i = 1; i <= distance; i++) {
+      if (cb(position)) {
+        return true;
+      }
+
+      position.y++;
+      position.x++;
+    }
+
+    return false;
+  }
+}
+
+function wanderTheEarth(cb: (coordinate: Coordinate) => boolean): void {
+  let distance = 0;
+
+  while (!walkInACircle(distance, cb)) {
+    distance++;
+  }
+}
+
+function hashCoordinate(coordinate: Coordinate): string {
+  return `${coordinate.x},${coordinate.y}`;
+}
+
+function hashToCoordinate(hash: string): Coordinate {
+  const [x, y] = hash.split(",");
+
+  return { x: parseIntBaseTen(x), y: parseIntBaseTen(y) };
+}
+
+const coordinatesToMap: (input: Coordinate[]) => ReversedCoordinateMap = list =>
+  R.reduce(
+    (acc, coordinate) => {
+      acc[hashCoordinate(coordinate)] = true;
+
+      return acc;
+    },
+    {},
+    list
+  );
+
+function slightlyBetterClosestCrossing(
+  pathA: Coordinate[],
+  pathB: Coordinate[]
+): Coordinate {
+  const mapA = coordinatesToMap(pathA);
+  const mapB = coordinatesToMap(pathB);
+
+  let coordinate: Coordinate;
+
+  wanderTheEarth(position => {
+    const hash = hashCoordinate(position);
+
+    if (mapA[hash] && mapB[hash]) {
+      coordinate = hashToCoordinate(hash);
+
+      return true;
+    }
+
+    return false;
+  });
+
+  if (coordinate) {
+    return coordinate;
+  }
+
+  throw new Error("Paths don't cross!");
+}
+
 function naiveClosestCrossing(
   pathA: Coordinate[],
   pathB: Coordinate[]
@@ -120,5 +228,5 @@ export function closestCrossing(wireA: string, wireB: string): Coordinate {
   const pathA = walkWireString(wireA);
   const pathB = walkWireString(wireB);
 
-  return naiveClosestCrossing(pathA, pathB);
+  return slightlyBetterClosestCrossing(pathA, pathB);
 }

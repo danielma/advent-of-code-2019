@@ -1,5 +1,6 @@
 import test from "ava";
 import { closestCrossing, manhattanDistance } from "./solution";
+import { readFileSync } from "fs";
 
 test("the first test", t => {
   const crossing = closestCrossing("R8,U5,L5,D3", "U7,R6,D4,L4");
@@ -23,4 +24,16 @@ test("the third test", t => {
   );
 
   t.is(manhattanDistance(crossing), 135);
+});
+
+test("with puzzle input", t => {
+  const input = readFileSync(`${__dirname}/input`).toString();
+
+  const [wireA, wireB] = input.split("\n");
+
+  const crossing = closestCrossing(wireA, wireB);
+
+  t.log(manhattanDistance(crossing));
+
+  t.is(1, 1);
 });
