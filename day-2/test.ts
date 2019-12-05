@@ -1,7 +1,7 @@
 import test from "ava";
-import { intCode } from "./solution";
 import { readFileSync } from "fs";
 import { parseIntBaseTen } from "../utils";
+import { intCode } from "./solution";
 
 test("1", t => {
   t.deepEqual(intCode([1, 0, 0, 0, 99]), [2, 0, 0, 0, 99]);
@@ -64,4 +64,30 @@ test("real input", t => {
   t.log(result[0]);
 
   t.is(1, 1);
+});
+
+test("find a thing that works", t => {
+  const input = readFileSync(`${__dirname}/input`)
+    .toString()
+    .split(",")
+    .map(parseIntBaseTen);
+
+  const initial = input[0];
+  const restInput = input.slice(3);
+
+  const theOutputWeWant = 19690720;
+
+  for (let x = 0; x < 100; x++) {
+    for (let y = 0; y < 100; y++) {
+      const i = [initial, x, y, ...restInput];
+      const result = intCode(i);
+
+      if (result[0] === theOutputWeWant) {
+        t.log(`x = ${x} | y = ${y} | answer = ${100 * x + y}`);
+        t.is(1, 1);
+
+        return;
+      }
+    }
+  }
 });

@@ -24,6 +24,9 @@
     "extensions": [
       "ts"
     ],
+    "files": [
+      "!**/.flycheck*"
+    ],
     "require": [
       "ts-node/register"
     ]
