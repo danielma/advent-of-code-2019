@@ -38,7 +38,6 @@ What is the Manhattan distance from the central port to the closest intersection
 
 import R from "ramda";
 import { parseIntBaseTen } from "../utils";
-import { readFileSync } from "fs";
 
 enum Direction {
   U = "U",
