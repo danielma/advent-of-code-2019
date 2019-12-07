@@ -23,28 +23,56 @@ type State = {
   outputs: Outputs;
 };
 
-const getOpCode = R.pipe(
-  R.toString,
-  s => s.padStart(5, "0"),
-  R.takeLast(2),
-  parseIntBaseTen
-);
+enum ParameterMode {
+  Position,
+  Immediate,
+}
+
+class OpCode {
+  input: number;
+  string: string;
+  code: number;
+
+  maxLength = 5;
+
+  constructor(input: number) {
+    this.input = input;
+    this.string = input.toString().padStart(this.maxLength, "0");
+    this.code = R.pipe(R.takeLast(2), parseIntBaseTen)(this.string);
+  }
+
+  parameterMode(argumentNumber: number): ParameterMode {
+    return this.string[this.maxLength - 3 - argumentNumber] === "0"
+      ? ParameterMode.Position
+      : ParameterMode.Immediate;
+  }
+}
 
 export function factory(...instructions: Instruction[]): Computer {
   function step({ program, cursor, inputs, outputs }: State): State | null {
-    const opCode = getOpCode(program[cursor]);
+    const opCode = new OpCode(program[cursor]);
+    const code = opCode.code;
 
-    if (opCode === 99) return null;
+    if (code === 99) return null;
 
     const instruction = instructions.find(
-      R.pipe(R.prop("opCode"), R.equals(opCode))
+      R.pipe(R.prop("opCode"), R.equals(code))
     );
 
     if (instruction) {
-      const args = R.map(
-        i => program[program[cursor + i]],
-        R.range(1, 1 + instruction.arity)
-      );
+      const args = R.map(argumentIndex => {
+        const mode = opCode.parameterMode(argumentIndex);
+        const immediateValue = program[cursor + 1 + argumentIndex];
+
+        switch (mode) {
+          case ParameterMode.Immediate:
+            return immediateValue;
+          case ParameterMode.Position:
+            return program[immediateValue];
+          default:
+            throw new Error(`Don't know parameter mode ${mode}`);
+        }
+      }, R.range(0, instruction.arity));
       const instructionResult = instruction.execute(args, {
         inputs: inputs,
       });
