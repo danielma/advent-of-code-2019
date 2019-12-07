@@ -45,14 +45,18 @@ export function factory(...instructions: Instruction[]): Computer {
         i => program[program[cursor + i]],
         R.range(1, 1 + instruction.arity)
       );
-      const location = program[cursor + 1 + instruction.arity];
-
       const instructionResult = instruction.execute(args, {
         inputs: inputs,
       });
 
+      let nextCursor = cursor + instruction.arity + 1; // plus opCode
+
       if (instructionResult.result !== undefined) {
+        const location = program[cursor + 1 + instruction.arity];
+
         program[location] = instructionResult.result;
+
+        nextCursor++;
       }
 
       if (instructionResult.outputs !== undefined) {
@@ -60,7 +64,7 @@ export function factory(...instructions: Instruction[]): Computer {
       }
 
       return {
-        cursor: cursor + instruction.arity + 2,
+        cursor: nextCursor,
         program,
         inputs,
         outputs,
