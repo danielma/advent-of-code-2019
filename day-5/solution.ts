@@ -8,19 +8,30 @@ Opcode 4 outputs the value of its only parameter. For example, the instruction 4
 Programs that use these instructions will come with documentation that explains what should be connected to the input and output. The program 3,0,4,0,99 outputs whatever it gets as input, then halts.
 */
 
-import { factory, Add, Multiply } from "../shared/intcode";
+import { factory, Add, Multiply, Instruction } from "../shared/intcode";
 
-export const intCode = factory(
-  Add,
-  Multiply,
-  {
-    opCode: 3, // Input
-    arity: 0,
-    execute: (_, { inputs }) => ({ result: inputs[0] }),
-  },
-  {
-    opCode: 4, // Output
-    arity: 1,
-    execute: args => ({ outputs: args }),
-  }
-);
+const Input: Instruction = {
+  opCode: 3,
+  arity: 0,
+  execute: (_, { inputs }) => ({ result: inputs[0] }),
+};
+
+const Output: Instruction = {
+  opCode: 4,
+  arity: 1,
+  execute: args => ({ outputs: args }),
+};
+
+export const intCode = factory(Add, Multiply, Input, Output);
+
+/*
+  Your computer is only missing a few opcodes:
+
+Opcode 5 is jump-if-true: if the first parameter is non-zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
+Opcode 6 is jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
+Opcode 7 is less than: if the first parameter is less than the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
+Opcode 8 is equals: if the first parameter is equal to the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
+Like all instructions, these instructions need to support parameter modes as described above.
+
+Normally, after an instruction is finished, the instruction pointer increases by the number of values in that instruction. However, if the instruction modifies the instruction pointer, that value is used and the instruction pointer is not automatically increased.
+*/

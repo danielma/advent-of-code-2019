@@ -16,11 +16,10 @@ test("program with more outputs", t => {
   t.deepEqual(outputs, [1, 4]);
 });
 
-test.skip("with real input", t => {
+test("with real input", t => {
   const input = parseInputFile(`${__dirname}/input`);
 
   const { outputs } = intCode(input, [1]);
 
-  t.log(outputs);
-  t.is(1, 1);
+  t.deepEqual(outputs, [0, 0, 0, 0, 0, 0, 0, 0, 0, 7157989]);
 });
