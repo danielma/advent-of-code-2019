@@ -1,3 +1,5 @@
+import { factory, Add, Multiply } from "../shared/intcode";
+
 /*
 An Intcode program is a list of integers separated by commas (like 1,0,0,3,99). To run one, start by looking at the first integer (called position 0). Here, you will find an opcode - either 1, 2, or 99. The opcode indicates what to do; for example, 99 means that the program is finished and should immediately halt. Encountering an unknown opcode means something went wrong.
 
@@ -41,61 +43,7 @@ Here are the initial and final states of a few more small programs:
 Once you have a working computer, the first step is to restore the gravity assist program (your puzzle input) to the "1202 program alarm" state it had just before the last computer caught fire. To do this, before running the program, replace position 1 with the value 12 and replace position 2 with the value 2. What value is left at position 0 after the program halts?
 */
 
-const ADD = 1;
-const MULTIPLY = 2;
-const HALT = 99;
-
-interface IProgramState {
-  program: IntcodeProgram;
-  cursor: number;
-}
-
-type IntcodeProgram = number[];
-
-export function intCode(program: IntcodeProgram): IntcodeProgram {
-  return _intCode({ program, cursor: 0 });
-}
-
-function _intCode({ program, cursor }: IProgramState): IntcodeProgram {
-  const state: IProgramState = { program, cursor };
-  const result = step(state);
-
-  if (result) {
-    return _intCode(result);
-  } else {
-    return program;
-  }
-}
-
-function step({ program, cursor }: IProgramState): IProgramState | null {
-  const command = program[cursor];
-  const commandArgs = [
-    program[program[cursor + 1]],
-    program[program[cursor + 2]],
-  ];
-  const location = program[cursor + 3];
-
-  switch (command) {
-    case ADD:
-      program[location] = commandArgs[0] + commandArgs[1];
-
-      return {
-        cursor: cursor + 4,
-        program,
-      };
-    case MULTIPLY:
-      program[location] = commandArgs[0] * commandArgs[1];
-
-      return {
-        cursor: cursor + 4,
-        program,
-      };
-    case HALT:
-      return null;
-    default:
-      return null;
-  }
-}
+export const intCode = factory(Add, Multiply);
 
 /*
   "Good, the new computer seems to be working correctly! Keep it nearby during this mission - you'll probably use it again. Real Intcode computers support many more features than your new one, but we'll let you know what they are as you need them."
