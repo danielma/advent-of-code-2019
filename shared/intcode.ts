@@ -1,5 +1,13 @@
 import R from "ramda";
 import { parseIntBaseTen } from "../utils";
+import { readFileSync } from "fs";
+
+export function parseInputFile(path: string): Program {
+  return readFileSync(path)
+    .toString()
+    .split(",")
+    .map(parseIntBaseTen);
+}
 
 type InstructionExecutor = (
   inputs: number[],
