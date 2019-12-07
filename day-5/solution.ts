@@ -22,7 +22,42 @@ const Output: Instruction = {
   execute: args => ({ outputs: args }),
 };
 
-export const intCode = factory(Add, Multiply, Input, Output);
+const JumpIfTrue: Instruction = {
+  opCode: 5,
+  arity: 2,
+  execute: ([condition, location]) =>
+    condition === 0 ? {} : { cursor: location },
+};
+
+const JumpIfFalse: Instruction = {
+  opCode: 6,
+  arity: 2,
+  execute: ([condition, location]) =>
+    condition === 0 ? { cursor: location } : {},
+};
+
+const LessThan: Instruction = {
+  opCode: 7,
+  arity: 2,
+  execute: ([first, second]) => ({ result: first < second ? 1 : 0 }),
+};
+
+const Equals: Instruction = {
+  opCode: 8,
+  arity: 2,
+  execute: ([first, second]) => ({ result: first === second ? 1 : 0 }),
+};
+
+export const intCode = factory(
+  Add,
+  Multiply,
+  Input,
+  Output,
+  JumpIfTrue,
+  JumpIfFalse,
+  LessThan,
+  Equals
+);
 
 /*
   Your computer is only missing a few opcodes:

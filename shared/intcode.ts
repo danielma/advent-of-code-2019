@@ -1,18 +1,14 @@
 import R from "ramda";
 import { parseIntBaseTen } from "../utils";
-import { readFileSync } from "fs";
 
-export function parseInputFile(path: string): Program {
-  return readFileSync(path)
-    .toString()
-    .split(",")
-    .map(parseIntBaseTen);
+export function parseProgram(stringProgram: string): Program {
+  return stringProgram.split(",").map(parseIntBaseTen);
 }
 
 type InstructionExecutor = (
   inputs: number[],
   args: { inputs: Inputs }
-) => { result?: number; outputs?: Outputs };
+) => { result?: number; outputs?: Outputs; cursor?: number };
 export type Instruction = {
   opCode: number;
   arity: number;
@@ -99,6 +95,10 @@ export function factory(...instructions: Instruction[]): Computer {
         outputs.push(...instructionResult.outputs);
       }
 
+      if (instructionResult.cursor !== undefined) {
+        nextCursor = instructionResult.cursor;
+      }
+
       return {
         cursor: nextCursor,
         program,
@@ -121,7 +121,12 @@ export function factory(...instructions: Instruction[]): Computer {
   }
 
   return function intCode(program: Program, inputs: Inputs = []): State {
-    return _intCode({ program, cursor: 0, inputs, outputs: [] });
+    return _intCode({
+      program: R.clone(program),
+      cursor: 0,
+      inputs,
+      outputs: [],
+    });
   };
 }
 
