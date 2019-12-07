@@ -1,24 +1,29 @@
 import R from "ramda";
 
-type Instruction = {
-  opCode: number;
+export type Instruction = {
+  opCode: string;
   arity: number;
   execute: (inputs: number[]) => number;
 };
 
-type Program = number[];
-type Computer = (program: Program) => Program;
+export type Program = number[];
+type Outputs = number[];
+type Inputs = number[];
+type ComputerResult = { program: Program; outputs: Outputs };
+type Computer = (program: Program, inputs?: Inputs) => ComputerResult;
 
 type State = {
   program: Program;
   cursor: number;
 };
 
+const getOpCode = R.pipe(R.toString, s => s.padStart(5, "0"), R.takeLast(2));
+
 export function factory(...instructions: Instruction[]): Computer {
   function step({ program, cursor }: State): State | null {
-    const opCode = program[cursor];
+    const opCode = getOpCode(program[cursor]);
 
-    if (opCode === 99) return null;
+    if (opCode === "99") return null;
 
     const instruction = instructions.find(
       R.pipe(R.prop("opCode"), R.equals(opCode))
@@ -52,19 +57,22 @@ export function factory(...instructions: Instruction[]): Computer {
     }
   }
 
-  return function intCode(program: Program): Program {
-    return _intCode({ program, cursor: 0 });
+  return function intCode(
+    program: Program,
+    inputs: Inputs = []
+  ): ComputerResult {
+    return { program: _intCode({ program, cursor: 0 }), outputs: [] };
   };
 }
 
 export const Add: Instruction = {
-  opCode: 1,
+  opCode: "01",
   arity: 2,
   execute: R.sum,
 };
 
 export const Multiply: Instruction = {
-  opCode: 2,
+  opCode: "02",
   arity: 2,
   execute: R.reduce((acc, n) => acc * n, 1),
 };
