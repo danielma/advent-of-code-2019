@@ -1,5 +1,5 @@
 import test from "ava";
-import { dataToLayers } from "./solution";
+import { dataToLayers, compositeImage, asciiRepresentation } from "./solution";
 import { readFileSync } from "fs";
 import R from "ramda";
 
@@ -44,4 +44,21 @@ test("real input", t => {
   const numberOfTwos = rowWithLeastZeros.filter(R.equals(2)).length;
 
   t.is(2210, numberOfOnes * numberOfTwos);
+});
+
+test("part 2, an actual composited image", t => {
+  const image = compositeImage("0222112222120000", { width: 2, height: 2 });
+
+  t.deepEqual(image, [0, 1, 1, 0]);
+  // console.log(asciiRepresentation(image, { width: 2, height: 2 }));
+});
+
+test.skip("part 2, show me the picture", t => {
+  const image = compositeImage(readFileSync(`${__dirname}/input`).toString(), {
+    width: 25,
+    height: 6,
+  });
+
+  console.log(asciiRepresentation(image, { width: 25, height: 6 }));
+  t.is(1, 1);
 });
