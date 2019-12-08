@@ -1,6 +1,5 @@
 import intCode, { Program } from "../shared/intcode";
 import R from "ramda";
-import { parseIntBaseTen } from "../utils";
 
 export function amplify(program: Program, phaseSettings: number[]): number {
   return R.reduce(
@@ -28,7 +27,7 @@ const everyPossiblePhaser: number[][] = permutations([0, 1, 2, 3, 4]);
 
 export function findHighestCombo(
   program: Program
-): { combo: number[]; thrust: number } {
+): { phaseSettings: number[]; thrust: number } {
   let phaseSettings = [];
 
   const highestThrust = everyPossiblePhaser.reduce((previous, current) => {
@@ -42,5 +41,5 @@ export function findHighestCombo(
     }
   }, 0);
 
-  return { combo: phaseSettings, thrust: highestThrust };
+  return { phaseSettings, thrust: highestThrust };
 }
