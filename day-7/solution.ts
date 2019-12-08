@@ -23,23 +23,22 @@ const permutations = (tokens: number[], subperms = [[]]) =>
         tokens
       );
 
-const everyPossiblePhaser: number[][] = permutations([0, 1, 2, 3, 4]);
-
 export function findHighestCombo(
-  program: Program
+  program: Program,
+  uniquePhaserSettings = [0, 1, 2, 3, 4]
 ): { phaseSettings: number[]; thrust: number } {
-  let phaseSettings = [];
+  const everyPossiblePhaser: number[][] = permutations(uniquePhaserSettings);
 
-  const highestThrust = everyPossiblePhaser.reduce((previous, current) => {
-    const thrust = amplify(program, current);
+  const [phaseSettings, thrust] = everyPossiblePhaser.reduce(
+    ([previousSettings, previousThrust], current) => {
+      const thrust = amplify(program, current);
 
-    if (thrust > previous) {
-      phaseSettings = current;
-      return thrust;
-    } else {
-      return previous;
-    }
-  }, 0);
+      return thrust > previousThrust
+        ? [current, thrust]
+        : [previousSettings, previousThrust];
+    },
+    [[], 0]
+  );
 
-  return { phaseSettings, thrust: highestThrust };
+  return { phaseSettings, thrust };
 }
