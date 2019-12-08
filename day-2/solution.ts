@@ -46,7 +46,7 @@ Once you have a working computer, the first step is to restore the gravity assis
 const intCodeThatIgnoresOutputs = factory(Add, Multiply);
 
 export function intCode(program: Program): Program {
-  return intCodeThatIgnoresOutputs(program).program;
+  return intCodeThatIgnoresOutputs({ program }).program;
 }
 
 /*

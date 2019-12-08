@@ -1,13 +1,35 @@
-import intCode, { Program } from "../shared/intcode";
+import intCode, { Program, State } from "../shared/intcode";
 import R from "ramda";
 
+function _amplify(amplifiers: Partial<State>[], thrust = 0, index = 0): number {
+  const amplifier = amplifiers[index];
+  const inputs = [...amplifier.inputs, thrust];
+  const nextState = intCode({
+    ...amplifier,
+    inputs,
+  });
+
+  const nextThrust = R.last(nextState.outputs);
+  amplifiers[index] = nextState;
+
+  if (nextState.paused || index < amplifiers.length - 1) {
+    return _amplify(
+      amplifiers,
+      nextThrust,
+      index === amplifiers.length - 1 ? 0 : index + 1
+    );
+  } else {
+    return nextThrust;
+  }
+}
+
 export function amplify(program: Program, phaseSettings: number[]): number {
-  return R.reduce(
-    (result, phaseSetting) =>
-      intCode(program, [phaseSetting, result]).outputs[0],
-    0,
-    phaseSettings
-  );
+  const amplifiers = phaseSettings.map(setting => ({
+    program,
+    inputs: [setting],
+  }));
+
+  return _amplify(amplifiers);
 }
 
 // https://gist.github.com/CrossEye/f7c2f77f7db7a94af209

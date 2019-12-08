@@ -8,7 +8,13 @@ export function parseProgram(stringProgram: string): Program {
 type InstructionExecutor = (
   inputs: number[],
   args: { inputs: Inputs }
-) => { result?: number; outputs?: Outputs; cursor?: number; inputs?: number[] };
+) => {
+  result?: number;
+  outputs?: Outputs;
+  cursor?: number;
+  inputs?: number[];
+  pause?: boolean;
+};
 export type Instruction = {
   opCode: number;
   arity: number;
@@ -18,13 +24,14 @@ export type Instruction = {
 export type Program = number[];
 type Outputs = number[];
 type Inputs = number[];
-type Computer = (program: Program, inputs?: Inputs) => State;
+type Computer = (state: Partial<State>) => State;
 
-type State = {
+export type State = {
   program: Program;
   cursor: number;
   inputs: Inputs;
   outputs: Outputs;
+  paused: boolean;
 };
 
 enum ParameterMode {
@@ -53,84 +60,96 @@ class OpCode {
 }
 
 export function factory(...instructions: Instruction[]): Computer {
-  function step({ program, cursor, inputs, outputs }: State): State | null {
+  function step(state: State): State | null {
+    const { program, cursor, inputs, outputs } = state;
     const opCode = new OpCode(program[cursor]);
     const code = opCode.code;
 
     if (code === 99) return null;
 
-    const instruction = instructions.find(
-      R.pipe(R.prop("opCode"), R.equals(code))
-    );
+    const instruction = instructions.find(R.propEq("opCode", code));
 
-    if (instruction) {
-      const args = R.map(argumentIndex => {
-        const mode = opCode.parameterMode(argumentIndex);
-        const immediateValue = program[cursor + 1 + argumentIndex];
-
-        switch (mode) {
-          case ParameterMode.Immediate:
-            return immediateValue;
-          case ParameterMode.Position:
-            return program[immediateValue];
-          default:
-            throw new Error(`Don't know parameter mode ${mode}`);
-        }
-      }, R.range(0, instruction.arity));
-      const instructionResult = instruction.execute(args, {
-        inputs: inputs,
-      });
-
-      let nextCursor = cursor + instruction.arity + 1; // plus opCode
-      let nextInputs = inputs;
-
-      if (instructionResult.result !== undefined) {
-        const location = program[cursor + 1 + instruction.arity];
-
-        program[location] = instructionResult.result;
-
-        nextCursor++;
-      }
-
-      if (instructionResult.outputs !== undefined) {
-        outputs.push(...instructionResult.outputs);
-      }
-
-      if (instructionResult.cursor !== undefined) {
-        nextCursor = instructionResult.cursor;
-      }
-
-      if (instructionResult.inputs !== undefined) {
-        nextInputs = instructionResult.inputs;
-      }
-
-      return {
-        cursor: nextCursor,
-        program,
-        inputs: nextInputs,
-        outputs,
-      };
-    } else {
-      return null;
+    if (!instruction) {
+      throw new Error(`unknown opCode ${code}`);
     }
+
+    const args = R.map(argumentIndex => {
+      const mode = opCode.parameterMode(argumentIndex);
+      const immediateValue = program[cursor + 1 + argumentIndex];
+
+      switch (mode) {
+        case ParameterMode.Immediate:
+          return immediateValue;
+        case ParameterMode.Position:
+          return program[immediateValue];
+        default:
+          throw new Error(`Don't know parameter mode ${mode}`);
+      }
+    }, R.range(0, instruction.arity));
+
+    const instructionResult = instruction.execute(args, {
+      inputs: inputs,
+    });
+
+    let nextCursor = cursor + instruction.arity + 1; // plus opCode
+    let nextInputs = inputs;
+
+    if (instructionResult.result !== undefined) {
+      const location = program[cursor + 1 + instruction.arity];
+
+      program[location] = instructionResult.result;
+
+      nextCursor++;
+    }
+
+    if (instructionResult.outputs !== undefined) {
+      outputs.push(...instructionResult.outputs);
+    }
+
+    if (instructionResult.cursor !== undefined) {
+      nextCursor = instructionResult.cursor;
+    }
+
+    if (instructionResult.inputs !== undefined) {
+      nextInputs = instructionResult.inputs;
+    }
+
+    if (instructionResult.pause) {
+      return { ...state, paused: true };
+    }
+
+    return {
+      cursor: nextCursor,
+      program,
+      inputs: nextInputs,
+      outputs,
+      paused: false,
+    };
   }
 
   function _intCode(state: State): State {
     const result = step(state);
 
     if (result) {
-      return _intCode(result);
+      return result.paused ? result : _intCode(result);
     } else {
       return state;
     }
   }
 
-  return function intCode(program: Program, inputs: Inputs = []): State {
+  return function intCode({
+    program,
+    cursor = 0,
+    inputs = [],
+    outputs = [],
+    paused = false,
+  }: State): State {
     return _intCode({
       program: R.clone(program),
-      cursor: 0,
+      cursor,
       inputs,
-      outputs: [],
+      outputs,
+      paused,
     });
   };
 }
@@ -154,7 +173,10 @@ export const Multiply: Instruction = {
 export const Input: Instruction = {
   opCode: 3,
   arity: 0,
-  execute: (_, { inputs }) => ({ result: inputs[0], inputs: inputs.slice(1) }),
+  execute: (_, { inputs }) =>
+    inputs.length > 0
+      ? { result: inputs[0], inputs: inputs.slice(1) }
+      : { pause: true },
 };
 
 export const Output: Instruction = {

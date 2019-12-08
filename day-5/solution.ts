@@ -8,9 +8,11 @@ Opcode 4 outputs the value of its only parameter. For example, the instruction 4
 Programs that use these instructions will come with documentation that explains what should be connected to the input and output. The program 3,0,4,0,99 outputs whatever it gets as input, then halts.
 */
 
-import _intCode from "../shared/intcode";
+import _intCode, { Program, State } from "../shared/intcode";
 
-export const intCode = _intCode;
+export function intCode(program: Program, inputs: number[] = []): State {
+  return _intCode({ program, inputs });
+}
 
 /*
   Your computer is only missing a few opcodes:
