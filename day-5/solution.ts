@@ -8,56 +8,9 @@ Opcode 4 outputs the value of its only parameter. For example, the instruction 4
 Programs that use these instructions will come with documentation that explains what should be connected to the input and output. The program 3,0,4,0,99 outputs whatever it gets as input, then halts.
 */
 
-import { factory, Add, Multiply, Instruction } from "../shared/intcode";
+import _intCode from "../shared/intcode";
 
-const Input: Instruction = {
-  opCode: 3,
-  arity: 0,
-  execute: (_, { inputs }) => ({ result: inputs[0], inputs: inputs.slice(1) }),
-};
-
-const Output: Instruction = {
-  opCode: 4,
-  arity: 1,
-  execute: args => ({ outputs: args }),
-};
-
-const JumpIfTrue: Instruction = {
-  opCode: 5,
-  arity: 2,
-  execute: ([condition, location]) =>
-    condition === 0 ? {} : { cursor: location },
-};
-
-const JumpIfFalse: Instruction = {
-  opCode: 6,
-  arity: 2,
-  execute: ([condition, location]) =>
-    condition === 0 ? { cursor: location } : {},
-};
-
-const LessThan: Instruction = {
-  opCode: 7,
-  arity: 2,
-  execute: ([first, second]) => ({ result: first < second ? 1 : 0 }),
-};
-
-const Equals: Instruction = {
-  opCode: 8,
-  arity: 2,
-  execute: ([first, second]) => ({ result: first === second ? 1 : 0 }),
-};
-
-export const intCode = factory(
-  Add,
-  Multiply,
-  Input,
-  Output,
-  JumpIfTrue,
-  JumpIfFalse,
-  LessThan,
-  Equals
-);
+export const intCode = _intCode;
 
 /*
   Your computer is only missing a few opcodes:

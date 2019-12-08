@@ -137,11 +137,8 @@ export function factory(...instructions: Instruction[]): Computer {
 
 const computeResult: (
   computer: (inputs: number[]) => number
-) => InstructionExecutor = computer => {
-  return inputs => {
-    return { result: computer(inputs) };
-  };
-};
+) => InstructionExecutor = computer => inputs => ({ result: computer(inputs) });
+
 export const Add: Instruction = {
   opCode: 1,
   arity: 2,
@@ -153,3 +150,52 @@ export const Multiply: Instruction = {
   arity: 2,
   execute: computeResult(R.reduce((acc, n) => acc * n, 1)),
 };
+
+export const Input: Instruction = {
+  opCode: 3,
+  arity: 0,
+  execute: (_, { inputs }) => ({ result: inputs[0], inputs: inputs.slice(1) }),
+};
+
+export const Output: Instruction = {
+  opCode: 4,
+  arity: 1,
+  execute: args => ({ outputs: args }),
+};
+
+export const JumpIfTrue: Instruction = {
+  opCode: 5,
+  arity: 2,
+  execute: ([condition, location]) =>
+    condition === 0 ? {} : { cursor: location },
+};
+
+export const JumpIfFalse: Instruction = {
+  opCode: 6,
+  arity: 2,
+  execute: ([condition, location]) =>
+    condition === 0 ? { cursor: location } : {},
+};
+
+export const LessThan: Instruction = {
+  opCode: 7,
+  arity: 2,
+  execute: ([first, second]) => ({ result: first < second ? 1 : 0 }),
+};
+
+export const Equals: Instruction = {
+  opCode: 8,
+  arity: 2,
+  execute: ([first, second]) => ({ result: first === second ? 1 : 0 }),
+};
+
+export default factory(
+  Add,
+  Multiply,
+  Input,
+  Output,
+  JumpIfTrue,
+  JumpIfFalse,
+  LessThan,
+  Equals
+);
