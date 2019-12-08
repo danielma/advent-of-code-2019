@@ -8,7 +8,7 @@ export function parseProgram(stringProgram: string): Program {
 type InstructionExecutor = (
   inputs: number[],
   args: { inputs: Inputs }
-) => { result?: number; outputs?: Outputs; cursor?: number };
+) => { result?: number; outputs?: Outputs; cursor?: number; inputs?: number[] };
 export type Instruction = {
   opCode: number;
   arity: number;
@@ -82,6 +82,7 @@ export function factory(...instructions: Instruction[]): Computer {
       });
 
       let nextCursor = cursor + instruction.arity + 1; // plus opCode
+      let nextInputs = inputs;
 
       if (instructionResult.result !== undefined) {
         const location = program[cursor + 1 + instruction.arity];
@@ -99,10 +100,14 @@ export function factory(...instructions: Instruction[]): Computer {
         nextCursor = instructionResult.cursor;
       }
 
+      if (instructionResult.inputs !== undefined) {
+        nextInputs = instructionResult.inputs;
+      }
+
       return {
         cursor: nextCursor,
         program,
-        inputs,
+        inputs: nextInputs,
         outputs,
       };
     } else {

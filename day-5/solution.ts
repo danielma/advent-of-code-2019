@@ -13,7 +13,7 @@ import { factory, Add, Multiply, Instruction } from "../shared/intcode";
 const Input: Instruction = {
   opCode: 3,
   arity: 0,
-  execute: (_, { inputs }) => ({ result: inputs[0] }),
+  execute: (_, { inputs }) => ({ result: inputs[0], inputs: inputs.slice(1) }),
 };
 
 const Output: Instruction = {
