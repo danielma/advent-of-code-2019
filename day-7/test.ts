@@ -80,3 +80,12 @@ test("part 2, second program", t => {
   t.is(thrust, 18216);
   t.deepEqual(phaseSettings, [9, 7, 8, 5, 6]);
 });
+
+test.skip("part 2, the real program", t => {
+  const program = parseProgram(readFileSync(`${__dirname}/input`).toString());
+
+  const { phaseSettings, thrust } = findHighestCombo(program, [5, 6, 7, 8, 9]);
+
+  t.is(thrust, 22476942);
+  t.deepEqual(phaseSettings, [7, 9, 5, 8, 6]);
+});
