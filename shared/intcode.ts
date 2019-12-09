@@ -169,12 +169,19 @@ export function factory(...instructions: Instruction[]): Computer {
   }
 
   function _intCode(state: State): State {
-    const result = step(state);
+    const lastResult = step(state);
+    let result = lastResult;
 
-    if (result) {
-      return result.paused ? result : _intCode(result);
+    do {
+      result = result && step(result);
+
+      if (result && result.paused) return result;
+    } while (result);
+
+    if (lastResult) {
+      return lastResult;
     } else {
-      return state;
+      throw new Error("no state to return");
     }
   }
 

@@ -40,11 +40,18 @@ test.skip("a super basic 203 test", t => {
   t.deepEqual(result.outputs, [100]);
 });
 
-test.only("real input", t => {
+test("real input (test mode)", t => {
   const program = parseProgram(readFileSync(`${__dirname}/input`).toString());
 
   const result = intCode({ program, inputs: [1] });
 
-  t.log(result.outputs);
-  t.is(1, 2);
+  t.deepEqual(result.outputs, [3063082071]);
+});
+
+test("real input (live mode)", t => {
+  const program = parseProgram(readFileSync(`${__dirname}/input`).toString());
+
+  const result = intCode({ program, inputs: [2] });
+
+  t.deepEqual(result.outputs, [81348]);
 });
