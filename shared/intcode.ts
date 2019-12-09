@@ -55,20 +55,27 @@ class OpCode {
     this.code = R.pipe(R.takeLast(2), parseIntBaseTen)(this.string);
   }
 
-  parameterMode(argumentNumber: number): ParameterMode {
+  parameterMode(
+    argumentNumber: number,
+    options: GetArgumentOptions
+  ): ParameterMode {
     const parameterString = this.string[this.maxLength - 3 - argumentNumber];
-    switch (parameterString) {
-      case "0":
-        return ParameterMode.Position;
-      case "1":
-        return ParameterMode.Immediate;
-      case "2":
-        return ParameterMode.Relative;
-      default:
-        throw new Error(`Can't find parameter mode for ${parameterString}`);
-    }
+    const map = {
+      0: ParameterMode.Position,
+      1: ParameterMode.Immediate,
+      2: ParameterMode.Relative,
+    };
+
+    const mode = map[parameterString];
+    if (mode !== undefined) return mode;
+
+    throw new Error(`Can't find parameter mode for ${parameterString}`);
   }
 }
+
+type GetArgumentOptions = {
+  overrideMode?: { [key: string]: ParameterMode };
+};
 
 export function factory(...instructions: Instruction[]): Computer {
   function step(state: State): State | null {
@@ -84,21 +91,26 @@ export function factory(...instructions: Instruction[]): Computer {
       throw new Error(`unknown opCode ${code}`);
     }
 
-    const args = R.map(argumentIndex => {
-      const mode = opCode.parameterMode(argumentIndex);
+    function getArgument(
+      argumentIndex: number,
+      options: GetArgumentOptions = {}
+    ): number {
+      const mode = opCode.parameterMode(argumentIndex, options);
       const immediateValue = program[cursor + 1 + argumentIndex];
 
       switch (mode) {
-        case ParameterMode.Immediate:
-          return immediateValue;
         case ParameterMode.Position:
           return program[immediateValue] || 0;
+        case ParameterMode.Immediate:
+          return immediateValue;
         case ParameterMode.Relative:
           return program[state.relativeBase + immediateValue] || 0;
         default:
           throw new Error(`Don't know parameter mode ${mode}`);
       }
-    }, R.range(0, instruction.arity));
+    }
+
+    const args = R.map(getArgument, R.range(0, instruction.arity));
 
     const instructionResult = instruction.execute(args, state);
 
@@ -107,6 +119,9 @@ export function factory(...instructions: Instruction[]): Computer {
     let nextRelativeBase = state.relativeBase;
 
     if (instructionResult.result !== undefined) {
+      // const location = getArgument(instruction.arity, {
+      //   overrideMode: { "0": ParameterMode.Immediate },
+      // });
       const location = program[cursor + 1 + instruction.arity];
 
       if (location > program.length - 1) {
