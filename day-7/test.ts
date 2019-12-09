@@ -1,6 +1,6 @@
 import test from "ava";
 import { parseProgram } from "../shared/intcode";
-import { findHighestCombo, amplify } from "./solution";
+import { findHighestCombo } from "./solution";
 import { readFileSync } from "fs";
 
 test("initial program", t => {

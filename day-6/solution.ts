@@ -50,7 +50,7 @@ function makePath({
   to?: Planet["name"];
   map: ReverseMap;
 }): Planet["name"][] {
-  const path = [];
+  const path: string[] = [];
 
   let nextPlanet = map[from];
 

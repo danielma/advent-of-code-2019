@@ -3,13 +3,13 @@ import R from "ramda";
 
 function _amplify(amplifiers: Partial<State>[], thrust = 0, index = 0): number {
   const amplifier = amplifiers[index];
-  const inputs = [...amplifier.inputs, thrust];
+  const inputs = amplifier.inputs ? [...amplifier.inputs, thrust] : [thrust];
   const nextState = intCode({
     ...amplifier,
     inputs,
   });
 
-  const nextThrust = R.last(nextState.outputs);
+  const nextThrust = nextState.outputs[nextState.outputs.length - 1];
   amplifiers[index] = nextState;
 
   if (nextState.paused || index < amplifiers.length - 1) {

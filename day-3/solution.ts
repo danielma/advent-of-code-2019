@@ -140,9 +140,9 @@ function walkInACircle(
       position.y++;
       position.x++;
     }
-
-    return false;
   }
+
+  return false;
 }
 
 function wanderTheEarth(cb: (coordinate: Coordinate) => boolean): void {
@@ -181,7 +181,7 @@ function slightlyBetterClosestCrossing(
   const mapA = coordinatesToMap(pathA);
   const mapB = coordinatesToMap(pathB);
 
-  let coordinate: Coordinate;
+  let coordinate: Coordinate | null = null;
 
   wanderTheEarth(position => {
     const hash = hashCoordinate(position);
