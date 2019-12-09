@@ -7,13 +7,14 @@ export function parseProgram(stringProgram: string): Program {
 
 type InstructionExecutor = (
   inputs: number[],
-  args: { inputs: Inputs }
+  args: State
 ) => {
   result?: number;
   outputs?: Outputs;
   cursor?: number;
   inputs?: number[];
   pause?: boolean;
+  relativeBase?: number;
 };
 export type Instruction = {
   opCode: number;
@@ -32,11 +33,13 @@ export type State = {
   inputs: Inputs;
   outputs: Outputs;
   paused: boolean;
+  relativeBase: number;
 };
 
 enum ParameterMode {
   Position,
   Immediate,
+  Relative,
 }
 
 class OpCode {
@@ -53,9 +56,17 @@ class OpCode {
   }
 
   parameterMode(argumentNumber: number): ParameterMode {
-    return this.string[this.maxLength - 3 - argumentNumber] === "0"
-      ? ParameterMode.Position
-      : ParameterMode.Immediate;
+    const parameterString = this.string[this.maxLength - 3 - argumentNumber];
+    switch (parameterString) {
+      case "0":
+        return ParameterMode.Position;
+      case "1":
+        return ParameterMode.Immediate;
+      case "2":
+        return ParameterMode.Relative;
+      default:
+        throw new Error(`Can't find parameter mode for ${parameterString}`);
+    }
   }
 }
 
@@ -81,21 +92,30 @@ export function factory(...instructions: Instruction[]): Computer {
         case ParameterMode.Immediate:
           return immediateValue;
         case ParameterMode.Position:
-          return program[immediateValue];
+          return program[immediateValue] || 0;
+        case ParameterMode.Relative:
+          return program[state.relativeBase + immediateValue] || 0;
         default:
           throw new Error(`Don't know parameter mode ${mode}`);
       }
     }, R.range(0, instruction.arity));
 
-    const instructionResult = instruction.execute(args, {
-      inputs: inputs,
-    });
+    const instructionResult = instruction.execute(args, state);
 
     let nextCursor = cursor + instruction.arity + 1; // plus opCode
     let nextInputs = inputs;
+    let nextRelativeBase = state.relativeBase;
 
     if (instructionResult.result !== undefined) {
       const location = program[cursor + 1 + instruction.arity];
+
+      if (location > program.length - 1) {
+        for (let i = program.length - 1; i < location; i++) {
+          if (program[i] === undefined) {
+            program.push(0);
+          }
+        }
+      }
 
       program[location] = instructionResult.result;
 
@@ -114,6 +134,10 @@ export function factory(...instructions: Instruction[]): Computer {
       nextInputs = instructionResult.inputs;
     }
 
+    if (instructionResult.relativeBase !== undefined) {
+      nextRelativeBase = instructionResult.relativeBase;
+    }
+
     if (instructionResult.pause) {
       return { ...state, paused: true };
     }
@@ -124,6 +148,7 @@ export function factory(...instructions: Instruction[]): Computer {
       inputs: nextInputs,
       outputs,
       paused: false,
+      relativeBase: nextRelativeBase,
     };
   }
 
@@ -143,6 +168,7 @@ export function factory(...instructions: Instruction[]): Computer {
     inputs = [],
     outputs = [],
     paused = false,
+    relativeBase = 0,
   }: State): State {
     return _intCode({
       program: R.clone(program),
@@ -150,6 +176,7 @@ export function factory(...instructions: Instruction[]): Computer {
       inputs,
       outputs,
       paused,
+      relativeBase,
     });
   };
 }
@@ -211,7 +238,7 @@ export const Equals: Instruction = {
   execute: ([first, second]) => ({ result: first === second ? 1 : 0 }),
 };
 
-export default factory(
+export const builtInInstructions = [
   Add,
   Multiply,
   Input,
@@ -219,5 +246,7 @@ export default factory(
   JumpIfTrue,
   JumpIfFalse,
   LessThan,
-  Equals
-);
+  Equals,
+];
+
+export default factory(...builtInInstructions);
