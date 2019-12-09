@@ -61,7 +61,10 @@ class OpCode {
   ): ParameterMode {
     const parameterString = this.string[this.maxLength - 3 - argumentNumber];
     const map = {
-      0: ParameterMode.Position,
+      0:
+        options.defaultMode === undefined
+          ? ParameterMode.Position
+          : options.defaultMode,
       1: ParameterMode.Immediate,
       2: ParameterMode.Relative,
     };
@@ -74,7 +77,7 @@ class OpCode {
 }
 
 type GetArgumentOptions = {
-  overrideMode?: { [key: string]: ParameterMode };
+  defaultMode?: ParameterMode;
 };
 
 export function factory(...instructions: Instruction[]): Computer {
@@ -119,10 +122,9 @@ export function factory(...instructions: Instruction[]): Computer {
     let nextRelativeBase = state.relativeBase;
 
     if (instructionResult.result !== undefined) {
-      // const location = getArgument(instruction.arity, {
-      //   overrideMode: { "0": ParameterMode.Immediate },
-      // });
-      const location = program[cursor + 1 + instruction.arity];
+      const location = getArgument(instruction.arity, {
+        defaultMode: ParameterMode.Immediate,
+      });
 
       if (location > program.length - 1) {
         for (let i = program.length - 1; i < location; i++) {
