@@ -60,14 +60,17 @@ class OpCode {
     options: GetArgumentOptions
   ): ParameterMode {
     const parameterString = this.string[this.maxLength - 3 - argumentNumber];
-    const map = {
-      0:
-        options.defaultMode === undefined
-          ? ParameterMode.Position
-          : options.defaultMode,
-      1: ParameterMode.Immediate,
-      2: ParameterMode.Relative,
-    };
+    const map = options.isWrite
+      ? {
+          0: ParameterMode.Immediate,
+          1: ParameterMode.Immediate,
+          2: ParameterMode.Relative,
+        }
+      : {
+          0: ParameterMode.Position,
+          1: ParameterMode.Immediate,
+          2: ParameterMode.Relative,
+        };
 
     const mode = map[parameterString];
     if (mode !== undefined) return mode;
@@ -77,7 +80,7 @@ class OpCode {
 }
 
 type GetArgumentOptions = {
-  defaultMode?: ParameterMode;
+  isWrite: boolean;
 };
 
 export function factory(...instructions: Instruction[]): Computer {
@@ -96,7 +99,7 @@ export function factory(...instructions: Instruction[]): Computer {
 
     function getArgument(
       argumentIndex: number,
-      options: GetArgumentOptions = {}
+      options: GetArgumentOptions = { isWrite: false }
     ): number {
       const mode = opCode.parameterMode(argumentIndex, options);
       const immediateValue = program[cursor + 1 + argumentIndex];
@@ -107,7 +110,11 @@ export function factory(...instructions: Instruction[]): Computer {
         case ParameterMode.Immediate:
           return immediateValue;
         case ParameterMode.Relative:
-          return program[state.relativeBase + immediateValue] || 0;
+          return (
+            (options.isWrite
+              ? state.relativeBase + immediateValue
+              : program[state.relativeBase + immediateValue]) || 0
+          );
         default:
           throw new Error(`Don't know parameter mode ${mode}`);
       }
@@ -123,16 +130,8 @@ export function factory(...instructions: Instruction[]): Computer {
 
     if (instructionResult.result !== undefined) {
       const location = getArgument(instruction.arity, {
-        defaultMode: ParameterMode.Immediate,
+        isWrite: true,
       });
-
-      if (location > program.length - 1) {
-        for (let i = program.length - 1; i < location; i++) {
-          if (program[i] === undefined) {
-            program.push(0);
-          }
-        }
-      }
 
       program[location] = instructionResult.result;
 
