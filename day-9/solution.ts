@@ -1,4 +1,4 @@
-import { factory, builtInInstructions, Instruction } from "../shared/intcode";
+import _intCode from "../shared/intcode";
 
 /*
 The relative base is modified with the relative base offset instruction:
@@ -13,13 +13,4 @@ The computer should have support for large numbers. Some instructions near the b
 Here are some example programs that use these features:
 */
 
-const instructions: Instruction[] = [
-  ...builtInInstructions,
-  {
-    opCode: 9,
-    arity: 1,
-    execute: ([first], state) => ({ relativeBase: state.relativeBase + first }),
-  },
-];
-
-export const intCode = factory(...instructions);
+export const intCode = _intCode;

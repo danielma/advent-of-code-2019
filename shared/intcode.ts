@@ -261,6 +261,12 @@ export const Equals: Instruction = {
   execute: ([first, second]) => ({ result: first === second ? 1 : 0 }),
 };
 
+export const MoveRelativeBase: Instruction = {
+  opCode: 9,
+  arity: 1,
+  execute: ([first], state) => ({ relativeBase: state.relativeBase + first }),
+};
+
 export const builtInInstructions = [
   Add,
   Multiply,
@@ -270,6 +276,7 @@ export const builtInInstructions = [
   JumpIfFalse,
   LessThan,
   Equals,
+  MoveRelativeBase,
 ];
 
 export default factory(...builtInInstructions);
