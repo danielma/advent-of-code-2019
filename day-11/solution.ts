@@ -1,10 +1,9 @@
 import intCode, { parseProgram } from "../shared/intcode";
 import { parseIntBaseTen } from "../utils";
 import R from "ramda";
+import colors from "colors/safe";
 
 type Coordinate = [number, number];
-
-type Canvas = {};
 
 enum Direction {
   North,
@@ -62,9 +61,17 @@ function serializeLocation(location: Coordinate): string {
   return `${location[0]},${location[1]}`;
 }
 
-const defaultColor = Color.Black;
+function deserializeLocation(serialized: string): Coordinate {
+  const [x, y] = serialized.split(",").map(parseIntBaseTen);
 
-export function robotPainter(program: string): RobotState {
+  return [x, y];
+}
+
+export function robotPainter(
+  program: string,
+  options = { defaultColor: Color.Black }
+): RobotState {
+  const { defaultColor } = options;
   const robotState: RobotState = {
     heading: Direction.North,
     location: [0, 0],
@@ -78,7 +85,6 @@ export function robotPainter(program: string): RobotState {
       robotState.paintedSpaces[serializeLocation(robotState.location)] ||
       defaultColor;
 
-    // console.log("Add input", currentColor);
     result = intCode({ ...result, inputs: [currentColor] });
 
     const [paintColor, turn] = result.outputs.slice(-2);
@@ -86,11 +92,45 @@ export function robotPainter(program: string): RobotState {
     robotState.paintedSpaces[
       serializeLocation(robotState.location)
     ] = paintColor;
-    // console.log("paint", robotState.location, paintColor);
     robotState.heading = nextHeading(robotState.heading, turn);
-    // console.log("nextHeading", robotState.heading);
     robotState.location = moveLocation(robotState.location, robotState.heading);
   } while (result.paused);
 
   return robotState;
+}
+
+const maxList = R.reduce(R.max, -Infinity);
+const minList = R.reduce(R.min, Infinity);
+
+export function actuallyPaint(program: string): string {
+  const { paintedSpaces } = robotPainter(program, {
+    defaultColor: Color.White,
+  });
+
+  const paints = Object.keys(paintedSpaces).map(deserializeLocation);
+
+  const minX = minList(paints.map(R.head)) as number;
+  const maxX = maxList(paints.map(R.head)) as number;
+  const minY = minList(paints.map(R.last)) as number;
+  const maxY = maxList(paints.map(R.last)) as number;
+
+  let painting = "";
+
+  for (let y = minY; y < maxY + 1; y++) {
+    for (let x = minX; x < maxX + 1; x++) {
+      const location: Coordinate = [x, y];
+
+      const serialized = serializeLocation(location);
+
+      if (paintedSpaces[serialized] === Color.White) {
+        painting += colors.bgWhite(" ");
+      } else {
+        painting += colors.bgBlack(" ");
+      }
+    }
+
+    painting += "\n";
+  }
+
+  return painting;
 }
